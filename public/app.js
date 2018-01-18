@@ -1,19 +1,34 @@
-// Grab the articles as a json
-$.getJSON("/articles", function(data) {
-  // For each one
-  for (var i = 0; i < data.length; i++) {
-    // Display scraped information on the page
-    $("#articles").append("<div class='article'><p data-id='" + data[i]._id + "'>" + 
-                          "<a href='" + data[i].link + "' target='_blank' class='title'>" + 
-                          data[i].title + "</a><br />" + 
-                          data[i].excerpt + "</p>" + 
-                          "<div class='comment-space'><h4 class='comment'>Comments</h4>" + 
-                          "<form class='hidden'><h5>Add a comment:</h5>" + 
-                          "<textarea id='bodyinput' name='body' ></textarea><br>" +
-                          "<button id='savecomment'>Save Comment</button><button id='delete'>Delete Comment</button></form>" + 
-                          "</div></div>");
-  }
-});
+  // Now make an ajax call for the Article
+$.ajax({
+  method: "GET",
+  url: "/scrape"
+})
+  // With that done, add the comment information to the page
+  .done(function(data) {
+    console.log(data);
+    populate();
+
+  });
+
+function populate() {
+  // Grab the articles as a json
+  $.getJSON("/articles", function(data) {
+    // For each one
+    for (var i = 0; i < data.length; i++) {
+      // Display scraped information on the page
+      $("#articles").append("<div class='article'><p data-id='" + data[i]._id + "'>" + 
+                            "<a href='" + data[i].link + "' target='_blank' class='title'>" + 
+                            data[i].title + "</a><br />" + 
+                            data[i].excerpt + "</p>" + 
+                            "<div class='comment-space'><h4 class='comment'>Comments</h4>" + 
+                            "<form class='hidden'><h5>Add a comment:</h5>" + 
+                            "<textarea id='bodyinput' name='body' ></textarea><br>" +
+                            "<button id='savecomment'>Save Comment</button><button id='delete'>Delete Comment</button></form>" + 
+                            "</div></div>");
+    }
+  });
+
+};
 
 // Whenever someone clicks a p tag
 $(document).on("click", ".comment", function() {
