@@ -34,7 +34,7 @@ $(document).on("click", ".comment", function() {
       // If there is a comment on the article
       if (data.comment) {
           // Place the body of the note in the body textarea
-          $("#bodyinput").val(data.comment.body);
+          thisComment.find("#bodyinput").val(data.comment.body);
       }
       console.log(thisId);
       thisComment.find("button").attr("data-id", thisId);
@@ -50,26 +50,20 @@ $(document).on("click", "#savecomment", function() {
   // Grab the id associated with the article from the submit button
   var thisId = $(this).attr("data-id");
 
-  // Run a POST request to change the note, using what's entered in the inputs
+  // Run a POST request to change the comment, using what's entered in the inputs
   $.ajax({
     method: "POST",
     url: "/articles/" + thisId,
     data: {
-      // Value taken from title input
-      title: $("#titleinput").val(),
       // Value taken from note textarea
-      body: $("#bodyinput").val()
+      body: $(this).siblings("#bodyinput").val()
     }
   })
     // With that done
     .done(function(data) {
       // Log the response
-      console.log(data);
-      // Empty the notes section
-      $("#notes").empty();
+      console.log("data is: " + data);
+      // say "saved" to user
+      $(this).parent().append("<p>Comment Saved!</p>");
     });
-
-  // Also, remove the values entered in the input and textarea for note entry
-  $("#titleinput").val("");
-  $("#bodyinput").val("");
 });
