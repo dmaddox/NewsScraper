@@ -10,7 +10,7 @@ $.getJSON("/articles", function(data) {
                           "<div class='comment-space'><h4 class='comment'>Comments</h4>" + 
                           "<form class='hidden'><h5>Add a comment:</h5>" + 
                           "<textarea id='bodyinput' name='body' ></textarea><br>" +
-                          "<button data-id='" + data._id + "' id='savecomment'>Save Comment</button></form>" + 
+                          "<button id='savecomment'>Save Comment</button></form>" + 
                           "</div></div>");
   }
 });
@@ -18,9 +18,9 @@ $.getJSON("/articles", function(data) {
 // Whenever someone clicks a p tag
 $(document).on("click", ".comment", function() {
   // Save the id from the sibling tag
-  var thisComment = $(this);
-  console.log(thisComment);
-  var thisId = $(this).siblings("p").attr("data-id");
+  var thisComment = $(this).parent();
+  console.log(thisComment.text());
+  var thisId = thisComment.siblings("p").attr("data-id");
   console.log(thisId);
 
   // Now make an ajax call for the Article
@@ -31,13 +31,45 @@ $(document).on("click", ".comment", function() {
     // With that done, add the comment information to the page
     .done(function(data) {
       console.log("Getting any comments...");
-      // If there are comments on the article
+      // If there is a comment on the article
       if (data.comment) {
-        // Place the body of the comment in the body textarea
-        var comment_body = $("#comment_body").val(data.comment.body);
-        thisComment.after(comment_body);
+          // Place the body of the note in the body textarea
+          $("#bodyinput").val(data.comment.body);
       }
-      thisComment.siblings("form").toggle();
+      console.log(thisId);
+      thisComment.find("button").attr("data-id", thisId);
+      thisComment.children("form").toggle();
 
     });
+});
+
+
+// When you click the savenote button
+$(document).on("click", "#savecomment", function() {
+  event.preventDefault();
+  // Grab the id associated with the article from the submit button
+  var thisId = $(this).attr("data-id");
+
+  // Run a POST request to change the note, using what's entered in the inputs
+  $.ajax({
+    method: "POST",
+    url: "/articles/" + thisId,
+    data: {
+      // Value taken from title input
+      title: $("#titleinput").val(),
+      // Value taken from note textarea
+      body: $("#bodyinput").val()
+    }
+  })
+    // With that done
+    .done(function(data) {
+      // Log the response
+      console.log(data);
+      // Empty the notes section
+      $("#notes").empty();
+    });
+
+  // Also, remove the values entered in the input and textarea for note entry
+  $("#titleinput").val("");
+  $("#bodyinput").val("");
 });
