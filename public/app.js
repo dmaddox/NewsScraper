@@ -5,7 +5,6 @@ $.ajax({
 })
   // With that done, add the comment information to the page
   .done(function(data) {
-    console.log(data);
     populate();
 
   });
@@ -30,13 +29,11 @@ function populate() {
 
 };
 
-// Whenever someone clicks a p tag
+// Whenever someone clicks a the comment div
 $(document).on("click", ".comment", function() {
   // Save the id from the sibling tag
   var thisComment = $(this).parent();
-  console.log(thisComment.text());
   var thisId = thisComment.siblings("p").attr("data-id");
-  console.log(thisId);
 
   // Now make an ajax call for the Article
   $.ajax({
@@ -45,7 +42,6 @@ $(document).on("click", ".comment", function() {
   })
     // With that done, add the comment information to the page
     .done(function(data) {
-      console.log("Getting any comments...");
       // If there is a comment on the article
       if (data.comment) {
           // Place the body of the note in the body textarea
@@ -54,10 +50,11 @@ $(document).on("click", ".comment", function() {
           thisComment.find("#savecomment").text("Update Comment");
           // add a delete option
           thisComment.find("#delete").show();
+          // add the comment's id as a data attribute
+          thisComment.find("#bodyinput").attr("data-comment-id", data.comment._id);
       } else {
         thisComment.find("#delete").hide();
       }
-      console.log(thisId);
       thisComment.find("button").attr("data-id", thisId);
       thisComment.children("form").toggle();
 
@@ -84,10 +81,6 @@ $(document).on("click", "#savecomment", function() {
   })
     // With that done
     .done(function(data) {
-      // Log the response
-      console.log("data is: " + data._id);
-      // say "saved" to user
-      console.log(thisComment);
       var confirmDiv = $("<div class='confirmation'>Saved!</div>");
       thisComment.after(confirmDiv);
       setTimeout(function(){
@@ -103,18 +96,15 @@ $(document).on("click", "#delete", function() {
   var thisDelete = $(this);
   // empty textarea
   thisDelete.siblings("#bodyinput").val("");
-  // Grab the id associated with the article from the submit button
-  var thisId = $(this).attr("data-id");
-  console.log("Deleting comment from article: " + thisId);
-  // Run a POST request to change the comment, using what's entered in the inputs
+  // Grab the comment's id from the submit button
+  var commentId = $(this).siblings("#bodyinput").attr("data-comment-id");
+  // Run a PUT request to remove the comment and update the associated article
   $.ajax({
-    method: "DELETE",
-    url: "/articles/" + thisId,
+    method: "PUT",
+    url: "/articles/" + commentId
   })
     // With that done
     .done(function(data) {
-      // Log the response
-      console.log("data is: " + data._id);
       // say "saved" to user
       var confirmDiv = $("<div class='confirmation'>Deleted!</div>");
       thisDelete.after(confirmDiv);

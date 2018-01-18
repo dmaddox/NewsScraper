@@ -29,7 +29,7 @@ app.use(express.static("public"));
 // Set mongoose to leverage built in JavaScript ES6 Promises
 // Connect to the Mongo DB
 mongoose.Promise = Promise;
-var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines";
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/news_db";
 mongoose.connect(MONGODB_URI, {
   useMongoClient: true
 });
@@ -143,21 +143,20 @@ app.post("/articles/:id", function(req, res) {
 
 
 // Route for saving/updating an Article's associated Note
-app.delete("/articles/:id", function(req, res) {
+app.put("/articles/:id", function(req, res) {
   // TODO
   // ====
   // save the new note that gets posted to the Notes collection
   // then find an article from the req.params.id
   // and update it's "note" property with the _id of the new note
   db.Comment
-    .remove({ _id: req.body.id })
+    .remove({ _id: req.params.id })
     .then(function(dbComment) {
-      console.log("comment " + req.body.id + " removed");
       // If a comment was removed succesfully, find one article and remove the comment from the article's comments
       // { new: true } tells the query that we want it to return the updated article -- it returns the original by default
       // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
       return db.Article.findOneAndUpdate(
-        {_id: req.params.id}, 
+        {comment: req.params.id}, 
         { comment: null }, 
         { new: true }
         );
