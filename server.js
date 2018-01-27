@@ -91,13 +91,13 @@ app.get("/articles", function(req, res) {
     });
 });
 
-// Route for grabbing a specific Article by id, populate it with it's note
+// Route for grabbing a specific Article by id, populate it with it's comment
 app.get("/articles/:id", function(req, res) {
   // TODO
   // ====
   // Finish the route so it finds one article using the req.params.id,
-  // and run the populate method with "note",
-  // then responds with the article with the note included
+  // and run the populate method with "comment",
+  // then responds with the article with the comment included
   db.Article
   //"_id": mongojs.ObjectId(req.params.id)
     .findOne({_id: req.params.id})
@@ -111,29 +111,59 @@ app.get("/articles/:id", function(req, res) {
     });
 });
 
-// Route for saving/updating an Article's associated comment
+// Route for saving an Article's associated Comment
 app.post("/articles/:id", function(req, res) {
-  // TODO
-  // ====
-  // save the new comment that gets posted to the comments collection
-  // then find an article from the req.params.id
-  // and update it's "comment" property with the _id of the new note
+  console.log('saving');
+  console.log(req);
+  // Create a new comment and pass the req.body to the entry
   db.Comment
     .create(req.body)
     .then(function(dbComment) {
-      // If a comment was created successfully, find one article and push the new Note's _id to the articles's `note` array
-      // { new: true } tells the query that we want it to return the updated article -- it returns the original by default
+      // If a comment was created successfully, find one Article with an `_id` equal to `req.params.id`. Update the Article to be associated with the new comment
+      // { new: true } tells the query that we want it to return the updated info (otherwise, it returns the original by default) 
       // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
-      console.log("saving dbComment._id: " + dbComment._id + " to the associated Article");
-      return db.Article.findOneAndUpdate(
-        {_id: req.params.id}, 
-        { comment: dbComment._id }, 
-        { new: true }
-        );
+      return db.Article.findOneAndUpdate({ _id: req.params.id }, { comment: dbComment._id }, { new: true });
     })
     .then(function(dbArticle) {
-      // If the article was updated successfully, send it back to the client
+      // If we were able to successfully update an Article, send it back to the client
       res.json(dbArticle);
+    })
+    .catch(function(err) {
+      // If an error occurred, send it to the client
+      res.json(err);
+    });
+});
+
+
+// Route for updating a comment (not touching the associated article, b/c the updated comment will inherit the same id)
+app.put("/comment/:id", function(req, res) {
+  console.log('updating');
+  console.log(JSON.stringify(req.body), null, 4);
+  console.log(req.params.id)
+  // delete all comments
+  db.Comment
+    .findOneAndUpdate({ _id: req.params.id }, { body: req.body.body }, { new: true })
+    .then(function(dbComment) {
+      console.log(dbComment);
+      // If the comment update was successful, send it back to the client
+      res.json(dbComment);
+    })
+    .catch(function(err) {
+      console.log(err);
+      // If an error occurs, send it back to the client
+      res.json(err);
+    });
+});
+
+
+// Route for deleting a specific comment
+app.delete("/comment/:id", function(req, res) {
+  // delete all comments
+  db.Comment
+    .findByIdAndRemove(req.params.id)
+    .then(function(dbComment) {
+      // If the comment was removed successfully, send it back to the client
+      res.json(dbComment);
     })
     .catch(function(err) {
       // If an error occurs, send it back to the client
@@ -141,25 +171,13 @@ app.post("/articles/:id", function(req, res) {
     });
 });
 
-
-// Route for saving/updating an Article's associated Note
-app.put("/articles/:id", function(req, res) {
-  // TODO
-  // ====
-  // save the new note that gets posted to the Notes collection
-  // then find an article from the req.params.id
-  // and update it's "note" property with the _id of the new note
+// Route for clearing the database before refreshing the scrape
+app.delete("/clear", function(req, res) {
+  // delete all comments
   db.Comment
-    .remove({ _id: req.params.id })
+    .remove()
     .then(function(dbComment) {
-      // If a comment was removed succesfully, find one article and remove the comment from the article's comments
-      // { new: true } tells the query that we want it to return the updated article -- it returns the original by default
-      // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
-      return db.Article.findOneAndUpdate(
-        {comment: req.params.id}, 
-        { comment: null }, 
-        { new: true }
-        );
+      return db.Article.remove();
     })
     .then(function(dbArticle) {
       // If the article was updated successfully, send it back to the client
