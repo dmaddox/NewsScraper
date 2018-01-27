@@ -12,15 +12,6 @@ var cheerio = require("cheerio");
 // Require all models
 var db = require("./models");
 
-
-// Update favicon
-var favicon = require('favicon');
-favicon("./public", function(err, favicon_url) {
-  console.log("err is " + err);
-  console.log("url " +  favicon_url);
-  // ...
-});
-
 var PORT = process.env.PORT || 3000;;
 
 // Initialize Express
